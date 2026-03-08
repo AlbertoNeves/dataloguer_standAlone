@@ -11,7 +11,7 @@
 #include "drivers/Display.h"
 #include "Graph.h"
 #include "services/SDService.h"
-
+#include "ui/ScreenGraph.h"
 
 void UI_Init()
 {
@@ -19,7 +19,7 @@ void UI_Init()
     Renderer_RequestDraw();
     // DrawBoot();
 }
-
+//---------------------------------------
 void UI_Update()
 {
     Display_BacklightTask();
@@ -65,11 +65,8 @@ void UI_Update()
         break;
 
     case ST_GRAPH:
-        if (evt == EVT_LEFT || evt == EVT_ENTER)
-        {
-            System_SetState(ST_MENU);
-            Renderer_RequestDraw();
-        }
+        ScreenGraph_Handle(evt);
+        handled = true;
         break;
 
     default:

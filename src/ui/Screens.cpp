@@ -7,13 +7,12 @@
 #include "services/Logger.h"
 #include "drivers/Display.h"
 #include "core/SystemState.h"
+#include "ui/Graph.h"
+#include "services/SDService.h"
+
 
 static int cursor = 0;
-//-------------------------------------------
-void ScreenGraph_Draw()
-{
-    Display_Print(0, 30, "Graph Screen");
-}
+
 //--------------------------------------------
 void ScreenAbout_Draw()
 {

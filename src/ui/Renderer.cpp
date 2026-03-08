@@ -35,8 +35,8 @@ void Renderer_Update()
 
     uint32_t now = millis();
 
-    // força refresh a cada 1000ms para atualizar relógio
-    if (now - lastAutoRefresh >= 1000)
+    if (System_GetState() != ST_GRAPH &&
+        now - lastAutoRefresh >= 1000)
     {
         lastAutoRefresh = now;
         dirty = true;
@@ -49,13 +49,13 @@ void Renderer_Update()
 
     Display_Clear();
 
-    if (System_GetState() != ST_RTC_CONFIG)
-    {
-        StatusBar_Draw();
-    }
-    else
+    if (System_GetState() == ST_RTC_CONFIG)
     {
         Renderer_DrawTitle("AJUSTE RTC");
+    }
+    else if (System_GetState() != ST_GRAPH)
+    {
+        StatusBar_Draw();
     }
 
     switch (System_GetState())
@@ -63,24 +63,31 @@ void Renderer_Update()
     case ST_HOME:
         ScreenHome_Draw();
         break;
+
     case ST_MENU:
         Menu_Draw();
         break;
+
     case ST_LOGGING:
         ScreenLogging_Draw();
         break;
+
     case ST_GRAPH:
         ScreenGraph_Draw();
         break;
+
     case ST_DISPLAY_ADJUST:
         DisplayAdjust_Draw();
         break;
+
     case ST_RTC_CONFIG:
         ScreenRTC_Draw();
         break;
+
     case ST_ABOUT:
         ScreenAbout_Draw();
         break;
+
     default:
         break;
     }

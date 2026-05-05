@@ -1,15 +1,9 @@
 #include <Arduino.h>
 #include "services/RTCService.h"
 #include "drivers/Display.h"
-#include "core/SystemState.h"
-#include "services/Logger.h"
+#include "services/LogEngine.h"
 #include "StatusBar.h"
 #include "Layout.h"
-
-void StatusBar_Init()
-{
-    // futuramente podemos iniciar RTC aqui
-}
 
 void StatusBar_Draw()
 {
@@ -19,14 +13,10 @@ void StatusBar_Draw()
     char buf[9];
     RTC_GetTime(buf);
 
-    // limpa área do relógio
     Display_ClearArea(2, 0, 60, 10);
     Display_Print(2, 8, buf);
-
-    // indicador SD fixo
     Display_Print(70, 8, "SD");
 
-    // LOG piscando fixo na posição
     static bool blink = false;
     static uint32_t blinkTimer = 0;
 
@@ -36,15 +26,8 @@ void StatusBar_Draw()
         blink = !blink;
     }
 
-    if (Logger_IsRunning())
-    {
-        if (blink)
-            Display_Print(95, 8, "LOG");
-        else
-            Display_Print(95, 8, "   "); // limpa mantendo largura
-    }
+    if (Log_IsActive() && blink)
+        Display_Print(95, 8, "LOG");
     else
-    {
         Display_Print(95, 8, "   ");
-    }
 }

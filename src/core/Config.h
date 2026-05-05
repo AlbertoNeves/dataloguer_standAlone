@@ -4,22 +4,27 @@
 
 // EEPROM MAP
 // ==========================
-#define EEPROM_ADDR_CONFIG 0
+// Offset temperatura
+#define EEPROM_ADDR 0       //(1 byte)
 
-struct DeviceConfig
-{
-    int16_t tempOffset;
-    int16_t humOffset;
-    int16_t pressOffset;
 
-    uint8_t brightness;
-    uint8_t contrast;
+// Display
+#define EEPROM_BRIGHTNESS 10 //(1 byte)
+#define EEPROM_CONTRAST 11   //(1 byte)
+#define EEPROM_GRAPH_AUTO_SCALE 12 // 1 byte
 
-    uint8_t logFlag;
-    uint32_t logInterval;
+// Logger
+#define EEPROM_LOG_FLAG 20     // 1 byte
+#define EEPROM_LOG_INTERVAL 24 // uint32_t
+#define EEPROM_BATTERY_LOG_FILE 60 // 16 bytes
 
-    uint8_t version;
-};
+// Entrada que força a criação do próximo arquivo de log da bateria.
+// Usar contato para GND; a entrada é configurada com INPUT_PULLUP.
+#define BATTERY_LOG_ROTATE_PIN 22
+
+// System
+#define EEPROM_BOOT_COUNTER 40   // uint16_t
+#define EEPROM_CONFIG_VERSION 50 // 1 byte
 // ==========================
 
 
@@ -38,6 +43,7 @@ struct DeviceConfig
 // LOGGING
 // ==========================
 #define LOG_INTERVAL_TEMP 180000UL // 3 minutos
+#define LOG_INTERVAL_BATTERY 600000UL // 10 minutos
 
 // SCREEN SAVER 
 #define BACKLIGHT_TIMEOUT 20000UL   // 20 segundos

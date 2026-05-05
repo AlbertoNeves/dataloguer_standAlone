@@ -6,13 +6,14 @@
 
 typedef struct
 {
-    uint8_t pin;          // pino do botão
-    EventType evt;        // evento gerado
-    bool repeat;          // permite auto-repeat
+    uint8_t pin;
+    EventType evt;
+    bool repeat;
 
-    uint8_t lastState;    // estado anterior
-    uint32_t pressTime;   // tempo que pressionou
-    uint32_t lastRepeat;  // ultimo repeat
+    uint8_t lastState;
+    uint32_t pressTime;
+    uint32_t lastRepeat;
+    bool holdSent;
 
 } Button;
 

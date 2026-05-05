@@ -54,33 +54,43 @@ void ScreenGraphVar_Handle(EventType evt)
 {
     switch(evt)
     {
+        case EVT_NONE:
+            break;
 
-    case EVT_DOWN:
+        case EVT_DOWN:
+            if(indexVar < 3)
+                indexVar++;
+            Renderer_RequestDraw();
+            break;
 
-        if(indexVar < 3)
-            indexVar++;
+        case EVT_UP:
+            if(indexVar > 0)
+                indexVar--;
+            Renderer_RequestDraw();
+            break;
 
-        Renderer_RequestDraw();
-        break;
+        case EVT_ENTER:
+            System_SetState(ST_GRAPH);
+            Renderer_RequestDraw();
+            break;
 
-    case EVT_UP:
+        case EVT_LEFT:
+            System_SetState(ST_GRAPH_CALENDAR);
+            Renderer_RequestDraw();
+            break;
 
-        if(indexVar > 0)
-            indexVar--;
+        case EVT_BACK:
+            // sugestão padrão:
+            System_SetState(ST_MENU);
+            Renderer_RequestDraw();
+            break;
 
-        Renderer_RequestDraw();
-        break;
+        case EVT_RIGHT:
+            // não usado nesta tela
+            break;
 
-    case EVT_ENTER:
-
-        System_SetState(ST_GRAPH);
-        Renderer_RequestDraw();
-        break;
-
-    case EVT_LEFT:
-
-        System_SetState(ST_GRAPH_CALENDAR);
-        Renderer_RequestDraw();
-        break;
+        case EVT_HOLD:
+            // opcional: reset rápido, debug, etc.
+            break;
     }
 }

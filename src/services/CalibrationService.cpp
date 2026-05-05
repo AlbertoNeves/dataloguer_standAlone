@@ -1,65 +1,53 @@
 #include "CalibrationService.h"
-#include "ConfigService.h"
+#include <EEPROM.h>
+#include "core\Config.h"
 
-// ======================================================
-// INIT (opcional - mantém padrão do teu projeto)
-// ======================================================
-void Calibration_Init()
+
+
+struct CalibData
 {
-    // Nada a fazer por enquanto
-    // Config já é carregado via Config_Load()
+    int16_t tempOffset;
+    int16_t humOffset;
+    int16_t pressOffset;
+};
+
+static CalibData calib;
+
+void Calibration_Load()
+{
+    EEPROM.get(EEPROM_ADDR, calib);
+
+    if(calib.tempOffset > 500 || calib.tempOffset < -500)
+    {
+        calib.tempOffset = 0;
+        calib.humOffset = 0;
+        calib.pressOffset = 0;
+    }
 }
 
-// ======================================================
-// GETTERS
-// ======================================================
-int16_t Calibration_GetTempOffset()
+void Calibration_Save()
 {
-    return Config_Get()->tempOffset;
+    EEPROM.put(EEPROM_ADDR, calib);
 }
 
-int16_t Calibration_GetHumOffset()
-{
-    return Config_Get()->humOffset;
-}
+int16_t Calibration_GetTempOffset() { return calib.tempOffset; }
+int16_t Calibration_GetHumOffset() { return calib.humOffset; }
+int16_t Calibration_GetPressOffset() { return calib.pressOffset; }
 
-int16_t Calibration_GetPressOffset()
-{
-    return Config_Get()->pressOffset;
-}
-
-// ======================================================
-// SETTERS (com proteção de escrita)
-// ======================================================
 void Calibration_SetTempOffset(int16_t v)
 {
-    DeviceConfig* cfg = Config_Get();
-
-    if (cfg->tempOffset != v)
-    {
-        cfg->tempOffset = v;
-        Config_Save();
-    }
+    calib.tempOffset = v;
+    Calibration_Save();
 }
 
 void Calibration_SetHumOffset(int16_t v)
 {
-    DeviceConfig* cfg = Config_Get();
-
-    if (cfg->humOffset != v)
-    {
-        cfg->humOffset = v;
-        Config_Save();
-    }
+    calib.humOffset = v;
+    Calibration_Save();
 }
 
 void Calibration_SetPressOffset(int16_t v)
 {
-    DeviceConfig* cfg = Config_Get();
-
-    if (cfg->pressOffset != v)
-    {
-        cfg->pressOffset = v;
-        Config_Save();
-    }
+    calib.pressOffset = v;
+    Calibration_Save();
 }

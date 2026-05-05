@@ -6,17 +6,11 @@
 #include "ui/Renderer.h"
 #include "core/Config.h"
 
-#define PIN_BACKLIGHT 11
-#define PIN_CONTRAST 3
-
 static uint8_t brightness;
 static uint8_t contrast;
-
 static uint8_t field = 0; // 0=brightness 1=contrast
 
-// bool DisplayAdjust_Handle(EventType evt);
-
-void DrawBar(int y, uint8_t value, uint8_t minV, uint8_t maxV)
+static void DrawBar(int y, uint8_t value, uint8_t minV, uint8_t maxV)
 {
     const int x = 12;
     const int wMax = 104;
@@ -28,7 +22,7 @@ void DrawBar(int y, uint8_t value, uint8_t minV, uint8_t maxV)
 
     Display_DrawFrame(x, y, wMax, 8);
 
-    if (w > 4) // só desenha se tiver espaço útil
+    if (w > 4)
         Display_DrawBox(x + 2, y + 2, w - 4, 4);
 }
 
@@ -40,13 +34,11 @@ void DisplayAdjust_Init()
     brightness = constrain(brightness, BRIGHT_MIN, BRIGHT_MAX);
     contrast = constrain(contrast, CONTR_MIN, CONTR_MAX);
 
-    analogWrite(PIN_BACKLIGHT, brightness);
-    analogWrite(PIN_CONTRAST, contrast);
+    Display_SetLevels(brightness, contrast);
 }
 
 void DisplayAdjust_Draw()
 {
-
     char buf[5];
 
     sprintf(buf, "%3u", brightness);
@@ -57,7 +49,6 @@ void DisplayAdjust_Draw()
 
     Display_Print(0, 20, "Display Adjust");
 
-    // Brightness
     if (field == 0)
         Display_Print(0, 31, "> Brightness");
     else
@@ -65,7 +56,6 @@ void DisplayAdjust_Draw()
 
     DrawBar(34, brightness, BRIGHT_MIN, BRIGHT_MAX);
 
-    // Contrast
     if (field == 1)
         Display_Print(0, 50, "> Contrast");
     else
@@ -73,6 +63,7 @@ void DisplayAdjust_Draw()
 
     DrawBar(52, contrast, CONTR_MIN, CONTR_MAX);
 }
+
 bool DisplayAdjust_Handle(EventType evt)
 {
     switch (evt)
@@ -94,8 +85,7 @@ bool DisplayAdjust_Handle(EventType evt)
             brightness++;
         if (field == 1 && contrast < CONTR_MAX)
             contrast++;
-        analogWrite(PIN_BACKLIGHT, brightness);
-        analogWrite(PIN_CONTRAST, contrast);
+        Display_SetLevels(brightness, contrast);
         Renderer_RequestDraw();
         return true;
 
@@ -104,15 +94,13 @@ bool DisplayAdjust_Handle(EventType evt)
             brightness--;
         if (field == 1 && contrast > CONTR_MIN)
             contrast--;
-        analogWrite(PIN_BACKLIGHT, brightness);
-        analogWrite(PIN_CONTRAST, contrast);
+        Display_SetLevels(brightness, contrast);
         Renderer_RequestDraw();
         return true;
 
     case EVT_ENTER:
-        brightness = Config_Get() brightness;
-        contrast = Config_Get() contrast;
-
+        EEPROM.update(EEPROM_BRIGHTNESS, brightness);
+        EEPROM.update(EEPROM_CONTRAST, contrast);
         System_SetState(ST_HOME);
         Renderer_RequestDraw();
         return true;

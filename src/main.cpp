@@ -15,16 +15,18 @@
 #include "services/Sensors.h"
 #include "services/SDService.h"
 #include "services/SerialService.h"
+#include "services/CalibrationService.h"
 
 // UI
 #include "ui/UI.h"
 #include "ui/Renderer.h"
-#include "ui\ScreenDisplayAdjust.h"
-#include "ui\ScreenCalibration.h"
-//---------------------------------------------------
+#include "ui/ScreenCalibration.h"
+#include "ui/Graph.h"
+
 void setup()
 {
     Serial.begin(115200);
+    Calibration_Load();
     SerialService_Init();
     Display_Init();
     Buttons_Init();
@@ -32,12 +34,10 @@ void setup()
     SD_Init();
     Sensors_init();
     Sensors_Warmup();
-    DisplayAdjust_Init(); // carrega brilho e contraste
+    Graph_Init();
 
-    for (uint8_t i = 0; i < 2; i++)
-    {
-        ScreenCalibration_Start(i); // carrega ofset T,H,P
-    }
+    for (uint8_t i = 0; i < 3; i++)
+        ScreenCalibration_Start(i);
 
     Log_Init();
     UI_Init();
@@ -48,17 +48,9 @@ void setup()
 
 void loop()
 {
-    // 1. Ler hardware (gera eventos)
     Buttons_Update();
-
-    // 2. Processar UI e estados
     UI_Update();
-
     Log_Update();
-
-    // 4. Renderer decide se redesenha
     Renderer_Update();
-
-    // 5. funcao serial
     SerialService_Update();
 }

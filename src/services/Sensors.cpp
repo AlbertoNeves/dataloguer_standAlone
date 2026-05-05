@@ -4,6 +4,7 @@
 #include <Adafruit_BME280.h>
 #include "services/CalibrationService.h"
 #include "drivers/DS18B20.h"
+#include "drivers/Display.h"
 
 #define BME_POWER 12
 #define DS18B20_PIN 15
@@ -15,12 +16,46 @@ TempSensorType tempSensorSelected = TEMP_SENSOR_BME280;
 #define BATTERY_PIN A0
 static uint16_t adcFiltrado = 0;
 static uint16_t tensaoBateria = 0;
+static bool filtroBateriaInicializado = false;
 // sensor
 Adafruit_BME280 bme;
 static float tFiltrado = 0;
 static float hFiltrado = 0;
 static float pFiltrado = 0;
 static bool filtroInicializado = false;
+
+static void drawWarmupHourglass(uint8_t step)
+{
+    U8G2 &u8g2 = Display_GetU8G2();
+
+    const uint8_t x = 56;
+    const uint8_t y = 30;
+    const uint8_t w = 16;
+    const uint8_t h = 24;
+    uint8_t level = 5 - (step % 6);
+
+    if (level > 5)
+        level = 0;
+
+    u8g2.drawFrame(x, y, w, h);
+    u8g2.drawLine(x + 1, y + 1, x + w - 2, y + h - 2);
+    u8g2.drawLine(x + w - 2, y + 1, x + 1, y + h - 2);
+
+    for (uint8_t i = 0; i < level; i++)
+        u8g2.drawHLine(x + 4 + i, y + 4 + i, w - 8 - (i * 2));
+
+    for (uint8_t i = 0; i < 5 - level; i++)
+        u8g2.drawHLine(x + 4 + i, y + h - 5 - i, w - 8 - (i * 2));
+}
+
+static void drawWarmupScreen(uint8_t step)
+{
+    Display_Clear();
+    Display_SetFontDefault();
+    Display_PrintCentered(18, "AGUARDE");
+    drawWarmupHourglass(step);
+    Display_Update();
+}
 
 //----------------------------------------
 void Sensors_init()
@@ -111,6 +146,14 @@ float Sensors_GetBatteryADC()
 {
     uint16_t leitura = analogRead(BATTERY_PIN);
 
+    if (!filtroBateriaInicializado)
+    {
+        adcFiltrado = leitura;
+        tensaoBateria = leitura;
+        filtroBateriaInicializado = true;
+        return tensaoBateria * (5.0 / 1023.0);
+    }
+
     // filtro exponencial inteiro 1/8
     adcFiltrado = adcFiltrado - (adcFiltrado >> 3) + (leitura >> 3);
 
@@ -146,11 +189,14 @@ uint8_t Sensors_GetBatteryIcon()
 void Sensors_Warmup()
 {
     float t, h, p;
-    for (uint8_t i = 0; i < 30; i++)
+    Display_LoadSettings();
+
+    for (uint8_t i = 0; i < 10; i++)
     {
+        drawWarmupScreen(i);
         Sensors_GetBatteryADC();
         Read_t_p_h(t, h, p);
-        delay(20);
+        delay(1000);
     }
 }
 //----------------------------------------------

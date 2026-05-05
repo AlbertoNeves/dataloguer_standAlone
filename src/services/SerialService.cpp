@@ -9,6 +9,7 @@
 #include "../core/SystemState.h"
 
 static String command;
+static String rawCommand;
 
 static DateTime tempDate;
 static char dumpSensor;
@@ -21,6 +22,8 @@ enum CliState
     CLI_IDLE,
     CLI_DUMP_SENSOR,
     CLI_DUMP_DATE,
+    CLI_DELETE_FILE,
+    CLI_FORMAT_CONFIRM,
     CLI_SET_DATE,
     CLI_SET_TIME
 };
@@ -63,20 +66,6 @@ static void sdcheck()
         Serial.println("SD OK");
     else
         Serial.println("SD ERROR");
-}
-
-//------------------------------------------------
-static void logstart()
-{
-    Log_Start();
-    Serial.println("Logging iniciado");
-}
-
-//------------------------------------------------
-static void logstop()
-{
-    Log_Stop();
-    Serial.println("Logging parado");
 }
 
 //------------------------------------------------
@@ -205,6 +194,32 @@ static void dumpArquivo(const char *filename)
 }
 
 //------------------------------------------------
+static void deleteFileStart()
+{
+    Serial.println("Digite o nome do arquivo a ser apagado");
+    cliState = CLI_DELETE_FILE;
+}
+
+//------------------------------------------------
+static void formatSd()
+{
+    Serial.println("Formatando SD...");
+    Log_Stop();
+
+    if (SD.format(&Serial) && SD.begin(53))
+        Serial.println("SD formatado com sucesso!!");
+    else
+        Serial.println("Erro ao formatar SD");
+}
+
+//------------------------------------------------
+static void formatStart()
+{
+    Serial.println("Confirma formatacao do cartao SD? (s/n)");
+    cliState = CLI_FORMAT_CONFIRM;
+}
+
+//------------------------------------------------
 static void help()
 {
     Serial.println("=========== COMANDOS ==========");
@@ -218,10 +233,9 @@ static void help()
     Serial.println("date      - mostra data/hora");
     Serial.println("setdate   - ajustar RTC");
 
-    Serial.println("logstart  - iniciar log");
-    Serial.println("logstop   - parar log");
-
     Serial.println("dump      - extrair dados");
+    Serial.println("delete    - apagar arquivo do SD");
+    Serial.println("format    - formatar cartao SD");
 
     Serial.println("================================");
 }
@@ -237,8 +251,10 @@ void SerialService_Update()
     if(!Serial.available())
         return;
 
-    command = Serial.readStringUntil('\n');
-    command.trim();
+    rawCommand = Serial.readStringUntil('\n');
+    rawCommand.trim();
+
+    command = rawCommand;
     command.toLowerCase();
 
     //------------------------------------------------
@@ -267,7 +283,7 @@ void SerialService_Update()
     //------------------------------------------------
     // AJUSTE HORA
     //------------------------------------------------
-if(cliState == CLI_SET_TIME)
+    if(cliState == CLI_SET_TIME)
 {
     if(command.length() > 0)
     {
@@ -289,6 +305,53 @@ if(cliState == CLI_SET_TIME)
     cliState = CLI_IDLE;
     return;
 }
+    //------------------------------------------------
+    // DELETE ARQUIVO
+    //------------------------------------------------
+    if(cliState == CLI_DELETE_FILE)
+    {
+        if(rawCommand.length() == 0)
+        {
+            cliState = CLI_IDLE;
+            return;
+        }
+
+        if(SD.exists(rawCommand.c_str()) && SD.remove(rawCommand.c_str()))
+        {
+            Serial.println("Arquivo deletado cm sucesso!!");
+            cliState = CLI_IDLE;
+        }
+        else
+        {
+            Serial.println("arquivo nao encontrado, aperte enter para sair ou digite novamente o nome do arquivo.");
+        }
+
+        return;
+    }
+
+    //------------------------------------------------
+    // CONFIRMA FORMATACAO
+    //------------------------------------------------
+    if(cliState == CLI_FORMAT_CONFIRM)
+    {
+        if(command == "s")
+        {
+            formatSd();
+        }
+        else if(command == "n")
+        {
+            Serial.println("formatacao cancelada");
+        }
+        else
+        {
+            Serial.println("Digite s para confirmar ou n para cancelar");
+            return;
+        }
+
+        cliState = CLI_IDLE;
+        return;
+    }
+
     //------------------------------------------------
     // ESTADO NORMAL
     //------------------------------------------------
@@ -312,11 +375,11 @@ if(cliState == CLI_SET_TIME)
         else if(command == "sdcheck")
             sdcheck();
 
-        else if(command == "logstart")
-            logstart();
+        else if(command == "delete")
+            deleteFileStart();
 
-        else if(command == "logstop")
-            logstop();
+        else if(command == "format")
+            formatStart();
 
         else if(command == "dump")
         {

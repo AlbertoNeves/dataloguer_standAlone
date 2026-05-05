@@ -8,6 +8,8 @@ void Display_PrintCentered(int y, const char *txt);
 void Display_Backlight(bool on);
 void Display_UserActivity();
 void Display_BacklightTask();
+void Display_LoadSettings();
+void Display_SetLevels(uint8_t brightness, uint8_t contrast);
 
 void Display_Init();
 void Display_Clear();

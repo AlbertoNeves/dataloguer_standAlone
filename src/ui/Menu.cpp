@@ -14,24 +14,6 @@ static uint8_t itemCount;
 static int cursorIndex = 0;
 static int firstVisible = 0;
 //----------------------------------------------
-void StartCalTemp()
-{
-    System_SetState(ST_CALIBRATION);
-    ScreenCalibration_Start(0);
-}
-//----------------------------------------------
-void StartCalHum()
-{
-    System_SetState(ST_CALIBRATION);
-    ScreenCalibration_Start(1);
-}
-//----------------------------------------------
-void StartCalPress()
-{
-    System_SetState(ST_CALIBRATION);
-    ScreenCalibration_Start(2);
-}
-//----------------------------------------------
 void Menu_Set(MenuItem *items, uint8_t count)
 {
     menu = items;

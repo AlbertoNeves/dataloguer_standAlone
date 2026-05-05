@@ -4,7 +4,7 @@
 #include "ScreenDisplayAdjust.h"
 #include "Renderer.h"
 #include "RTCAdjust.h"
-#include "services/Logger.h"
+#include "services/LogEngine.h"
 #include "drivers/Display.h"
 #include "core/SystemState.h"
 #include "ui/Graph.h"
@@ -12,42 +12,42 @@
 #include "ScreenCalibration.h"
 
 static int cursor = 0;
-
-//--------------------------------------------
+//-------------------------------
 void ScreenAbout_Draw()
 {
-    Display_Print(0, 30, "IFK-ENV-01");
-    Display_Print(0, 45, "INFORMATEK");
+    Display_PrintCentered(25, "DataLogger");
+    Display_PrintCentered(38, "26 Abril 2026");
+    Display_PrintCentered(50, "alberto.alves.neves");
+    Display_PrintCentered(60, "@gmail.com");
 }
-//---------------------------------------------
+//-------------------------------
 void ScreenRTC_Handle(EventType evt)
 {
     RTCAdjust_Handle(evt);
 }
-//-----------------------------------------------
+//-------------------------------
 void ScreenRTC_Draw()
 {
     RTCAdjust_Draw();
 }
-//-----------------------------------------------
+//-------------------------------
 void ScreenHome_Draw()
 {
     Display_Clear();
-
-    Display_Print(0, 10, "IFK-ENV-01");
+     Display_PrintCentered(10, "DataLogger");
 
     if (cursor == 0)
     {
-        Display_Print(0, 30, "> Start Log");
+        Display_Print(0, 30, "> Variaveis");
         Display_Print(0, 45, "  Menu");
     }
     else
     {
-        Display_Print(0, 30, "  Start Log");
+        Display_Print(0, 30, "  Variaveis");
         Display_Print(0, 45, "> Menu");
     }
 }
-//-----------------------------------------------
+//-------------------------------
 void ScreenHome_Handle(EventType evt)
 {
     switch (evt)
@@ -64,9 +64,9 @@ void ScreenHome_Handle(EventType evt)
     }
 
     case EVT_ENTER:
-    {
         if (cursor == 0)
         {
+            Log_Start();
             System_SetState(ST_LOGGING);
         }
         else
@@ -77,108 +77,87 @@ void ScreenHome_Handle(EventType evt)
 
         Renderer_RequestDraw();
         break;
-    }
 
     default:
         break;
     }
 }
-//-----------------------------------------------
+//-------------------------------
 void StartLog()
 {
-    Logger_Start();
+    Log_Start();
     System_SetState(ST_LOGGING);
     Renderer_RequestDraw();
 }
-//-----------------------------------------------
+//-------------------------------
 void Menu_TempOffset()
 {
     System_SetState(ST_CALIBRATION);
     ScreenCalibration_Start(0);
 }
-//-----------------------------------------------
+//-------------------------------
 void Menu_HumOffset()
 {
     System_SetState(ST_CALIBRATION);
     ScreenCalibration_Start(1);
 }
-//-----------------------------------------------
+//-------------------------------
 void Menu_PressOffset()
 {
     System_SetState(ST_CALIBRATION);
     ScreenCalibration_Start(2);
 }
-//-----------------------------------------------
+//-------------------------------
 void OpenGraph()
 {
     System_SetState(ST_GRAPH_CALENDAR);
     Renderer_RequestDraw();
 }
-//-----------------------------------------------
+//-------------------------------
 void OpenDisplayAdjust()
 {
     System_SetState(ST_DISPLAY_ADJUST);
     DisplayAdjust_Init();
     Renderer_RequestDraw();
 }
-//-----------------------------------------------
+//-------------------------------
 void OpenRTC()
 {
     System_SetState(ST_RTC_CONFIG);
-    RTCAdjust_Start(); // ← importante
+    RTCAdjust_Start();
     Renderer_RequestDraw();
 }
-//------------------------------------------------
+//-------------------------------
 void OpenAbout()
 {
     System_SetState(ST_ABOUT);
     Renderer_RequestDraw();
 }
-//------------------------------------------------
-MenuItem calibrationMenu[] =
-{
+//-------------------------------
+MenuItem calibrationMenu[] = {
     {"Temp", Menu_TempOffset},
     {"Umidade", Menu_HumOffset},
     {"Pressao", Menu_PressOffset},
     {"Sair", OpenMainMenu}
 };
-//------------------------------------------------
+//-------------------------------
 void StartCalibrationMenu()
 {
     Menu_Set(calibrationMenu, sizeof(calibrationMenu) / sizeof(MenuItem));
     Menu_Draw();
 }
-//-----------------------------------------------
-MenuItem mainMenu[] =
-    {
-        {"Iniciar Log", StartLog},
-        {"Calibracao", StartCalibrationMenu},
-        {"Grafico", OpenGraph},
-        {"Display", OpenDisplayAdjust},
-        {"Config RTC", OpenRTC},
-        {"Sobre", OpenAbout}};
-//--------------------------------------------------------
+//-------------------------------
+MenuItem mainMenu[] = {
+    {"Variaveis", StartLog},
+    {"Calibracao", StartCalibrationMenu},
+    {"Grafico", OpenGraph},
+    {"Display", OpenDisplayAdjust},
+    {"Config RTC", OpenRTC},
+    {"Sobre", OpenAbout}
+};
+//-------------------------------
 void OpenMainMenu()
 {
     Menu_Set(mainMenu, sizeof(mainMenu) / sizeof(MenuItem));
     Menu_Draw();
 }
-//-----------------------------------------------------------
-void DrawGraph()
-{
-    Display_Clear();
-    Display_Print(0, 30, "Graph Screen");
-}
-//-----------------------------------------------------
-void HandleRTC(EventType evt)
-{
-    RTCAdjust_Handle(evt);
-}
-//----------------------------------------------------------
-void DrawAbout()
-{
-    Display_Clear();
-    Display_Print(0, 30, "IFK-ENV-01");
-    Display_Print(0, 45, "INFORMATEK");
-}
-//--------------------------------------------------------------
